@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ScoutIQ</title>
+
+<style>
+body { background:#0a0e1a; color:white; font-family:sans-serif; margin:0; }
+.container { max-width:400px; margin:auto; padding:20px; }
+
+.card {
+  background:#111827;
+  border:1px solid #1e293b;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  cursor:pointer;
+}
+
+button {
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:none;
+  background:#111827;
+  color:white;
+}
+
+.filter-btn {
+  margin-right:6px;
+  margin-bottom:10px;
+  background:#1e293b;
+  color:white;
+}
+
+.active { background:#00d4ff; color:black; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>ScoutIQ</h2>
+
+  <input id="search" placeholder="Search athletes...">
+
+  <div>
+    <button class="filter-btn" onclick="setFilter('All')">All</button>
+    <button class="filter-btn" onclick="setFilter('Football')">Football</button>
+    <button class="filter-btn" onclick="setFilter('Basketball')">Basketball</button>
+    <button class="filter-btn" onclick="setFilter('Tennis')">Tennis</button>
+  </div>
+
+  <h4>Players</h4>
+  <div id="list"></div>
+
+  <h4>Shortlist</h4>
+  <div id="shortlist"></div>
+</div>
+
+<script>
+const athletes = [
+  {id:1,name:"Arjun",sport:"Football",age:22,score:85},
+  {id:2,name:"Carlos",sport:"Football",age:24,score:82},
+  {id:3,name:"Priya",sport:"Basketball",age:22,score:83},
+  {id:4,name:"Sofia",sport:"Tennis",age:19,score:84},
+];
+
+let filter = "All";
+
+function getShortlist() {
+  return JSON.parse(localStorage.getItem("shortlist") || "[]");
+}
+
+function saveShortlist(data) {
+  localStorage.setItem("shortlist", JSON.stringify(data));
+}
+
+function toggleShortlist(player) {
+  let list = getShortlist();
+  if (list.find(p => p.id === player.id)) {
+    list = list.filter(p => p.id !== player.id);
+  } else {
+    list.push(player);
+  }
+  saveShortlist(list);
+  render();
+}
+
+function setFilter(f) {
+  filter = f;
+  render();
+}
+
+function render() {
+  const search = document.getElementById("search").value.toLowerCase();
+  const listDiv = document.getElementById("list");
+  const shortlistDiv = document.getElementById("shortlist");
+
+  listDiv.innerHTML = "";
+  shortlistDiv.innerHTML = "";
+
+  let filtered = athletes.filter(a =>
+    (filter === "All" || a.sport === filter) &&
+    a.name.toLowerCase().includes(search)
+  );
+
+  filtered.forEach(a => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <b>${a.name}</b> (${a.sport})<br>
+      Age: ${a.age} | Score: ${a.score}<br>
+      <button onclick='toggleShortlist(${JSON.stringify(a)})'>
+        Add/Remove
+      </button>
+    `;
+    listDiv.appendChild(div);
+  });
+
+  getShortlist().forEach(a => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      ⭐ ${a.name} (${a.sport}) - ${a.score}
+    `;
+    shortlistDiv.appendChild(div);
+  });
+}
+
+document.getElementById("search").addEventListener("input", render);
+
+render();
+</script>
+
+</body>
+</html>
